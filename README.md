@@ -38,9 +38,9 @@ cd FinanceManager
 # Configure o ambiente e preencha o .env
 cp .env.example .env
 
-# Para o proximo passo sera necessario ter o docker isntalado em sua maquina 
-# Execute
+# Para o proximo passo sera necessario ter o docker instalado em sua maquina 
+# Execulte
 docker compose up
 
-# Acesse o servidor pelo navegador
+# Acesse o sistema pelo navegador
 http://localhost:3000
