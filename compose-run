@@ -1,0 +1,16 @@
+#!/bin/bash
+set -e
+
+[ "$1" = "-b" ] && CMD="up --build" || CMD="up"
+
+echo "📦 Instalando dependências para desenvolvimento"
+cd backend && yarn install && cd ..
+
+if [ "$CMD" = "up" ]; then
+	echo "🐳 Iniciando seu ambiente docker"
+else
+	echo "🐳 Rebuildando seu ambiente docker"
+fi
+
+# Caso aconteça erros de adm editar este trecho do codigo
+docker compose $CMD
