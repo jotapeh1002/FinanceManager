@@ -17,7 +17,7 @@ async function bootstrap() {
   }
 
   app.useGlobalPipes(pipesConfig());
-  await app.listen(dotEnv.PORT);
+  await app.listen(dotEnv.PORT, '0.0.0.0');
 }
 bootstrap().catch((err) => {
   console.error('Erro to initialize application', err);
