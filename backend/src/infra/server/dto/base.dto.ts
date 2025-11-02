@@ -1,8 +1,12 @@
-import { IsDate, IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsDate, IsNotEmpty, IsString } from 'class-validator';
 
 export class IdDto {
+  @ApiProperty({
+    description: 'Id "uuid" do usuario usado para consutas',
+    example: 'ddssd-ssds7sd-5sd5ds-5s54dss',
+  })
   @IsNotEmpty({ message: 'O campo ID não  pode ser vazio' })
-  @IsUUID(4, { message: 'O ID deve ser um UUID válido' })
   @IsString({ message: 'O campo ID precisa ser uma string' })
   id: string;
 }

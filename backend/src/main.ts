@@ -3,6 +3,7 @@ import { Confighelper } from './infra/configs/confighelper.config';
 import { MikroORM } from '@mikro-orm/core';
 import { pipesConfig } from './infra/configs/pipes.config';
 import { AppModule } from './infra/server/modules/app.module';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -16,8 +17,12 @@ async function bootstrap() {
       .catch((err) => console.log(err));
   }
 
+  //swagger
+  const config = new DocumentBuilder().setTitle('Finances Gestor API').setDescription('Teste pra ver o que e isso').setVersion('version 1.0').build();
+  SwaggerModule.setup('doc', app, () => SwaggerModule.createDocument(app, config));
+
   app.useGlobalPipes(pipesConfig());
-  await app.listen(dotEnv.PORT, '0.0.0.0');
+  await app.listen(3000, '0.0.0.0');
 }
 bootstrap().catch((err) => {
   console.error('Erro to initialize application', err);

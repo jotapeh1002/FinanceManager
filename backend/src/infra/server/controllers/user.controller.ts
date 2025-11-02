@@ -1,65 +1,84 @@
 import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post } from '@nestjs/common';
-import { UserUseCase } from 'src/app/usecase/userUseCase';
-import { UserCreateDto, UserEmailUpdateDto, UserLoginDto, UserNameUpdateDto, UserPasswordUpdateDto } from '../dto/user.dto';
 import { IdDto } from '../dto/base.dto';
+import { UserCreateDto, UserEmailUpdateDto, UserLoginDto, UserNameUpdateDto, UserPasswordUpdateDto } from '../dto/user';
+import { ApiTags } from '@nestjs/swagger';
+import { UserCreate, UserDelete, UserEmailUpdate, UserList, UserLogin, UserNameUpdate, UserPasswordUpdate, UserfindById } from 'src/app/usecase/user';
 
-@Controller('user')
+@Controller('users')
+@ApiTags('Users')
 export class UserController {
-  constructor(private userUseCase: UserUseCase) {}
+  constructor(
+    private readonly userCreate: UserCreate,
+    private readonly userLogin: UserLogin,
+    private readonly userFindById: UserfindById,
+    private readonly userlist: UserList,
+    private readonly userNameUpdate: UserNameUpdate,
+    private readonly userEmailUpdate: UserEmailUpdate,
+    private readonly userPasswordUpdate: UserPasswordUpdate,
+    private readonly userDelete: UserDelete,
+  ) {}
 
-  @Post('create')
+  @Post()
   @HttpCode(201)
-  async createUser(@Body() user: UserCreateDto) {
-    await this.userUseCase.create(user);
-    return [{ message: 'usuario criado com sucesso' }];
+  async create(@Body() userCreateDto: UserCreateDto) {
+    await this.userCreate.exec(userCreateDto);
+    return { message: 'Usuário criado com sucesso' };
   }
 
   @Post('login')
   @HttpCode(200)
-  async login(@Body() login: UserLoginDto) {
-    await this.userUseCase.login(login);
-    return [{ message: 'Login efetuado com sucesso' }];
+  async login(@Body() userLoginDto: UserLoginDto) {
+    await this.userLogin.exec(userLoginDto);
+    return { message: 'Login efetuado com sucesso' };
   }
 
-  @Get('findall')
+  @Get()
   @HttpCode(200)
-  async getAll() {
-    const data = await this.userUseCase.listUsers();
-    return [{ message: 'Users retornados com sucesso', result: data.map((user) => user.toJson) }];
+  async findAll() {
+    const users = await this.userlist.exec();
+    return { message: 'Usuários retornados com sucesso', result: users.map((u) => u.toJson) };
   }
 
-  @Get('findone/:id')
+  @Get(':id')
   @HttpCode(200)
-  async findOneId(@Param() id: IdDto) {
-    const data = await this.userUseCase.findById(id.id);
-    return [{ message: 'User encontrado com sucesso', result: data.toJson }];
+  async findOne(@Param() idDto: IdDto) {
+    const user = await this.userFindById.exec(idDto.id);
+    return { message: 'Usuário encontrado com sucesso', result: user.toJson };
   }
 
-  @Patch('nameupdate/:id')
+  @Patch(':id/name')
   @HttpCode(200)
-  async nameUpdate(@Param() id: IdDto, @Body() name: UserNameUpdateDto) {
-    await this.userUseCase.nameUpdate({ id: id.id, name: name.name });
-    return [{ message: 'Nome atualizado com sucesso' }];
+  async updateName(@Param() idDto: IdDto, @Body() nameDto: UserNameUpdateDto) {
+    await this.userNameUpdate.exec({ id: idDto.id, name: nameDto.name });
+    return { message: 'Nome atualizado com sucesso' };
   }
 
-  @Patch('passwordupdate/:id')
+  @Patch(':id/password')
   @HttpCode(200)
-  async passwordUpdate(@Param() id: IdDto, @Body() data: UserPasswordUpdateDto) {
-    await this.userUseCase.passwordUpdate({ id: id.id, password: data.password, newPassword: data.newPassword });
-    return [{ message: 'senha atualizada com sucesso' }];
+  async updatePassword(@Param() idDto: IdDto, @Body() passwordDto: UserPasswordUpdateDto) {
+    await this.userPasswordUpdate.exec({
+      id: idDto.id,
+      password: passwordDto.password,
+      newPassword: passwordDto.newPassword,
+    });
+    return { message: 'Senha atualizada com sucesso' };
   }
 
-  @Patch('emailupdate/:id')
+  @Patch(':id/email')
   @HttpCode(200)
-  async updateEmail(@Param() id: IdDto, @Body() data: UserEmailUpdateDto) {
-    await this.userUseCase.emailUpdate({ id: id.id, email: data.email, password: data.password });
-    return [{ message: 'email atualizado com sucesso' }];
+  async updateEmail(@Param() idDto: IdDto, @Body() emailDto: UserEmailUpdateDto) {
+    await this.userEmailUpdate.exec({
+      id: idDto.id,
+      email: emailDto.email,
+      password: emailDto.password,
+    });
+    return { message: 'Email atualizado com sucesso' };
   }
 
-  @Delete('delete/:id')
+  @Delete(':id')
   @HttpCode(200)
-  async delete(@Param() id: IdDto) {
-    await this.userUseCase.delete(id.id);
-    return [{ message: 'usuario deletado com sucesso' }];
+  async remove(@Param() idDto: IdDto) {
+    await this.userDelete.exec(idDto.id);
+    return { message: 'Usuário deletado com sucesso' };
   }
 }

@@ -14,7 +14,6 @@ export class UserModel {
     if (data.name) this._name = data.name;
     if (data.email) this._email = data.email;
     if (data.password) this._password = data.password;
-    this._updatedAt = new Date();
   }
 
   get get() {

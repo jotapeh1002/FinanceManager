@@ -14,10 +14,10 @@ export class User {
   @Property()
   password!: string;
 
-  @Property({ type: 'date', onCreate: () => new Date(), nullable: true })
+  @Property({ type: 'timestamp', onCreate: () => new Date(), nullable: true })
   createdAt?: Date;
 
-  @Property({ type: 'date', onUpdate: () => new Date(), nullable: true })
+  @Property({ type: 'timestamp', onUpdate: () => new Date(), nullable: true })
   updatedAt?: Date;
 
   @BeforeCreate()
