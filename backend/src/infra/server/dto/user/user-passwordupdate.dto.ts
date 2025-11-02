@@ -1,19 +1,20 @@
-import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString, IsStrongPassword } from 'class-validator';
 
 export class UserPasswordUpdateDto {
-  @ApiProperty({
-    description: 'Senha atual do usuário utilizada para login',
-    example: 'Ex@mplePa22sword',
-  })
+  /**
+   * Nome do usuário nickname
+   * @example "jon Doe"
+   */
+
   @IsNotEmpty({ message: 'O campo "Senha atual" não pode ser vazio' })
   @IsString({ message: 'O campo "Senha atual" precisa ser uma string' })
   password: string;
 
-  @ApiProperty({
-    description: 'Nova senha do usuário. Deve conter no mínimo 8 caracteres, incluindo letras maiúsculas, minúsculas, números e símbolos',
-    example: 'Pa22wordEx@ample',
-  })
+  /**
+   * Senha do usuário usada para login. Deve conter no mínimo 8 caracteres, incluindo letras maiúsculas, minúsculas, números e símbolos
+   * @example Ex@mplePa22word
+   */
+
   @IsNotEmpty({ message: 'O campo "Nova senha" não pode ser vazio' })
   @IsString({ message: 'O campo "Nova senha" precisa ser uma string' })
   @IsStrongPassword(
