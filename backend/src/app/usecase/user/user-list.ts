@@ -3,15 +3,19 @@ import { IUserRepository } from 'src/app/repositories/iUserRepository';
 import { UserModel } from 'src/core/model/user.model';
 import { ERROR_CODES, ERROR_MESSAGES } from 'src/shared/constants/errosHttp';
 import { ApiException } from 'src/shared/errors/apiExeptions';
+import { UseCase } from '..';
 
 @Injectable()
-export class UserList {
+export class UserList implements UseCase<null, UserModel[]> {
   constructor(private iUserRepository: IUserRepository) {}
 
   async exec(): Promise<UserModel[]> {
     const users = await this.iUserRepository.findAll();
 
-    if (!users[0]) throw new ApiException(ERROR_MESSAGES[ERROR_CODES.USER_NOT_FOUND], HttpStatus.BAD_REQUEST, ERROR_CODES.USER_NOT_FOUND);
+    if (!users[0]) {
+      throw new ApiException(ERROR_MESSAGES[ERROR_CODES.USER_NOT_FOUND], HttpStatus.BAD_REQUEST, ERROR_CODES.USER_NOT_FOUND);
+    }
+
     return users;
   }
 }

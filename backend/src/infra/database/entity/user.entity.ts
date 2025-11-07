@@ -1,4 +1,4 @@
-import { Entity, Property, PrimaryKey, BeforeCreate } from '@mikro-orm/core';
+import { Entity, Property, PrimaryKey } from '@mikro-orm/core';
 
 @Entity()
 export class User {
@@ -14,15 +14,9 @@ export class User {
   @Property()
   password!: string;
 
-  @Property({ type: 'timestamp', onCreate: () => new Date(), nullable: true })
-  createdAt?: Date;
+  @Property({ type: 'timestamp', nullable: false })
+  createdAt: Date;
 
-  @Property({ type: 'timestamp', onUpdate: () => new Date(), nullable: true })
+  @Property({ type: 'timestamp', nullable: true })
   updatedAt?: Date;
-
-  @BeforeCreate()
-  async assignId() {
-    const { v4: uuidv4 } = (await import('uuid')) as { v4: () => string };
-    this.id = uuidv4();
-  }
 }

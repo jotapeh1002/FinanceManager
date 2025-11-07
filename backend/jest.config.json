@@ -1,0 +1,15 @@
+{
+  "moduleNameMapper": {
+    "^src/(.*)$": "<rootDir>/src/$1"
+  },
+  "moduleFileExtensions": ["ts", "js", "json"],
+  "rootDir": ".",
+  "testRegex": ".*\\.spec\\.ts$",
+  "transform": {
+    "^.+\\.ts$": ["ts-jest", { "tsconfig": "tsconfig.json" }]
+  },
+  "passWithNoTests": true,
+  "collectCoverageFrom": ["src/**/*.(ts|js)"],
+  "coverageDirectory": "coverage",
+  "testEnvironment": "node"
+}

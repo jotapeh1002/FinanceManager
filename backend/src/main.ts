@@ -1,8 +1,8 @@
 import { NestFactory } from '@nestjs/core';
-import { Confighelper } from './infra/configs/confighelper.config';
+import { Confighelper } from './infra/configs/confighelper.config.js';
 import { MikroORM } from '@mikro-orm/core';
-import { pipesConfig } from './infra/configs/pipes.config';
-import { AppModule } from './infra/server/modules/app.module';
+import { pipesConfig } from './infra/configs/pipes.config.js';
+import { AppModule } from './infra/server/modules/app.module.js';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {

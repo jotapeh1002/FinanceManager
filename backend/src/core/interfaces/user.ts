@@ -1,29 +1,29 @@
-export class UserCommon {
+export class UserImput {
   constructor(
     public name: string,
     public email: string,
     public password: string,
     public readonly createdAt?: Date,
-    public updatedAt?: Date,
+    public updatedAt?: Date | undefined,
     public readonly id?: string,
   ) {}
 }
 
-export class LoginCommon {
+export class LoginImput {
   constructor(
     public email: string,
     public password: string,
   ) {}
 }
 
-export class NameUpdate {
+export class NameUpdateImput {
   constructor(
     public id: string,
     public name: string,
   ) {}
 }
 
-export class PasswordUpdate {
+export class PasswordUpdateImput {
   constructor(
     public id: string,
     public password: string,
@@ -31,7 +31,7 @@ export class PasswordUpdate {
   ) {}
 }
 
-export class EmailUpdate {
+export class EmailUpdateImput {
   constructor(
     public id: string,
     public email: string,

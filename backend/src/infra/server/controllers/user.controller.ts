@@ -36,14 +36,14 @@ export class UserController {
   @HttpCode(200)
   async findAll() {
     const users = await this.userlist.exec();
-    return { message: 'Usuários retornados com sucesso', result: users.map((u) => u.toJson) };
+    return { message: 'Usuários retornados com sucesso', result: users.map((u) => u.toJSON()) };
   }
 
   @Get(':id')
   @HttpCode(200)
   async findOne(@Param() idDto: IdDto) {
     const user = await this.userFindById.exec(idDto.id);
-    return { message: 'Usuário encontrado com sucesso', result: user.toJson };
+    return { message: 'Usuário encontrado com sucesso', result: user.toJSON() };
   }
 
   @Patch(':id/name')

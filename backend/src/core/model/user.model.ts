@@ -1,39 +1,31 @@
-import { UserCommon } from '../interfaces/user';
+export interface UserProps {
+  name: string;
+  email: string;
+  password: string;
+  createdAt?: Date;
+  updatedAt?: Date | undefined;
+}
 
 export class UserModel {
-  constructor(
-    private _name: string,
-    private _email: string,
-    private _password: string,
-    private readonly _createdAt?: Date,
-    private _updatedAt?: Date,
-    private readonly _id?: string,
-  ) {}
+  private readonly _id: string;
+  private props: UserProps;
 
-  update(data: Partial<UserCommon>): void {
-    if (data.name) this._name = data.name;
-    if (data.email) this._email = data.email;
-    if (data.password) this._password = data.password;
+  constructor(props: UserProps, id?: string) {
+    this._id = id ?? crypto.randomUUID();
+    this.props = props;
+    this.props.createdAt = props.createdAt ?? new Date();
+  }
+
+  update(data: Partial<UserProps>): void {
+    this.props = { ...this.props, ...data, updatedAt: data.createdAt ?? new Date() };
   }
 
   get get() {
-    return {
-      id: this._id,
-      name: this._name,
-      email: this._email,
-      password: this._password,
-      createdAt: this._createdAt,
-      updatedAt: this._updatedAt,
-    };
+    return { id: this._id, ...this.props };
   }
 
-  get toJson() {
-    return {
-      id: this._id,
-      name: this._name,
-      email: this._email,
-      createdAt: this._createdAt,
-      updatedAt: this._updatedAt,
-    };
+  toJSON(): Required<{ id: string } & UserProps> {
+    const { password: _password, ...rest } = this.props;
+    return { id: this._id, ...rest } as Required<{ id: string } & UserProps>;
   }
 }
