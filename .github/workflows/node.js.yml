@@ -25,4 +25,4 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'yarn'
-    - run: cd backend && yarn install && yarn test
+    - run: ls -a && cd backend && yarn install && yarn test
