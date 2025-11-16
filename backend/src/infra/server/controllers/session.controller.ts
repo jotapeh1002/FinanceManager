@@ -38,7 +38,7 @@ export class SessionController {
     summary: 'Atualizar token de acesso',
     description: 'Gera um novo token de acesso usando um refresh token válido',
   })
-  async refreshAccessToken(@Res() res: Response, @Req() req: RequestWithUser) {
+  async refreshAccessToken(@Res({ passthrough: true }) res: Response, @Req() req: RequestWithUser) {
     const refreshToken = req.cookies['refresh_token'];
     const result = await this.newAcessToken.exec({ refreshToken });
 
