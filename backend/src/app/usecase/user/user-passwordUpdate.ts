@@ -1,32 +1,35 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
-import { IUserRepository } from 'src/app/repositories/iUserRepository';
-import { CriptoProvider } from 'src/app/services/hash.provider';
-import { PasswordUpdateImput } from 'src/core/interfaces/user';
-import { ERROR_CODES, ERROR_MESSAGES } from 'src/shared/constants/errosHttp';
-import { ApiException } from 'src/shared/errors/apiExeptions';
-import { UseCase } from '..';
+import { Injectable } from '@nestjs/common';
+import { UseCase } from '../../../shared/utils/iUsecase';
+import { IHashProviders } from 'src/app/interfaces/iHashProviders';
+import { IUserContracts } from 'src/app/contracts/iUserContracts';
+import { PasswordUpdateImput } from 'src/core/interfaces/iUser';
+import { InvalidPassword, UserNotFound } from 'src/shared/errors/customErross';
 
 @Injectable()
 export class UserPasswordUpdate implements UseCase<PasswordUpdateImput, void> {
   constructor(
-    private iUserRepository: IUserRepository,
-    private criptoProvider: CriptoProvider,
+    private iUserContract: IUserContracts,
+    private iHashProvider: IHashProviders,
   ) {}
 
   async exec({ id, newPassword, password }: PasswordUpdateImput): Promise<void> {
-    const user = await this.iUserRepository.findById(id);
+    const user = await this.iUserContract.findById(id);
 
     if (!user) {
-      throw new ApiException(ERROR_MESSAGES[ERROR_CODES.USER_NOT_FOUND], HttpStatus.BAD_REQUEST, ERROR_CODES.USER_NOT_FOUND);
+      throw new UserNotFound();
     }
 
-    const isValidPassword = await this.criptoProvider.compare(password, user.get.password);
+    if (password == user.get.password) {
+      return;
+    }
+
+    const isValidPassword = await this.iHashProvider.compare(password, user.get.password);
 
     if (!isValidPassword) {
-      throw new ApiException(ERROR_MESSAGES[ERROR_CODES.PASSWORD_INVALID], HttpStatus.BAD_REQUEST, ERROR_CODES.PASSWORD_INVALID);
+      throw new InvalidPassword();
     }
 
-    user.update({ password: await this.criptoProvider.hash(newPassword) });
-    await this.iUserRepository.update(user);
+    user.update({ password: await this.iHashProvider.hash(newPassword) });
+    await this.iUserContract.update(user);
   }
 }

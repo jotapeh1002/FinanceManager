@@ -1,7 +1,8 @@
-import { Entity, Property, PrimaryKey } from '@mikro-orm/core';
+import { Entity, Property, PrimaryKey, Collection, OneToMany } from '@mikro-orm/core';
+import { SessionOrm } from './session.entity';
 
 @Entity()
-export class User {
+export class UserOrm {
   @PrimaryKey({ type: 'uuid' })
   id!: string;
 
@@ -19,4 +20,7 @@ export class User {
 
   @Property({ type: 'timestamp', nullable: true })
   updatedAt?: Date;
+
+  @OneToMany(() => SessionOrm, (session) => session.user)
+  sessions = new Collection<SessionOrm>(this);
 }

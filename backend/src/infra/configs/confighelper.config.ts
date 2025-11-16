@@ -11,6 +11,8 @@ export class Confighelper {
     this.POSTGRES_PORT = this.dotEnv.get('POSTGRES_PORT') ?? '';
     this.POSTGRES_HOST = this.dotEnv.get('POSTGRES_HOST') ?? '';
     this.POSTGRES_PROD = this.dotEnv.get('POSTGRES_PROD') == 'true';
+    this.JWT_ACESS_SECRET = this.dotEnv.get('JWT_ACESS_SECRET') ?? '';
+    this.JWT_REFRESH_SECRET = this.dotEnv.get('JWT_REFRESH_SECRET') ?? '';
   }
   PORT: string;
   POSTGRES_USER: string;
@@ -19,4 +21,6 @@ export class Confighelper {
   POSTGRES_PORT: string;
   POSTGRES_HOST: string;
   POSTGRES_PROD: boolean;
+  JWT_ACESS_SECRET: string;
+  JWT_REFRESH_SECRET: string;
 }

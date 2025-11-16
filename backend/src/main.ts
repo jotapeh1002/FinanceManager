@@ -4,11 +4,14 @@ import { MikroORM } from '@mikro-orm/core';
 import { pipesConfig } from './infra/configs/pipes.config.js';
 import { AppModule } from './infra/server/modules/app.module.js';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const dotEnv = app.get(Confighelper);
   const orm = app.get(MikroORM);
+
+  app.use(cookieParser());
 
   if (!dotEnv.POSTGRES_PROD) {
     await orm
@@ -18,8 +21,10 @@ async function bootstrap() {
   }
 
   //swagger
-  const config = new DocumentBuilder().setTitle('Finances Gestor API').setDescription('Teste pra ver o que e isso').setVersion('version 1.0').build();
-  SwaggerModule.setup('doc', app, () => SwaggerModule.createDocument(app, config));
+  const config = new DocumentBuilder().setTitle('Finances Gestor API').setDescription('developper').setVersion('1.0').addBearerAuth().build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('doc', app, document);
 
   app.useGlobalPipes(pipesConfig());
   await app.listen(3000, '0.0.0.0');

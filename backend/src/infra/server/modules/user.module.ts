@@ -1,12 +1,12 @@
 import { Module } from '@nestjs/common';
-import { RepositoryModule } from './repository.module';
-import { CriptoProvider } from 'src/app/services/hash.provider';
 import { UserController } from '../controllers/user.controller';
-import { UserCreate, UserDelete, UserEmailUpdate, UserList, UserLogin, UserNameUpdate, UserPasswordUpdate, UserfindById } from 'src/app/usecase/user';
+import { UserSignUp, UserDelete, UserEmailUpdate, UserList, UserSignIn, UserNameUpdate, UserPasswordUpdate, UserfindById } from 'src/app/usecase/user';
+import { SessionModule } from './session.module';
 
 @Module({
-  imports: [RepositoryModule],
-  providers: [UserCreate, UserDelete, UserEmailUpdate, UserfindById, UserList, UserLogin, UserNameUpdate, UserPasswordUpdate, CriptoProvider],
+  imports: [SessionModule],
+  providers: [UserSignUp, UserDelete, UserEmailUpdate, UserfindById, UserList, UserSignIn, UserNameUpdate, UserPasswordUpdate],
   controllers: [UserController],
+  exports: [UserSignUp, UserDelete, UserEmailUpdate, UserfindById, UserList, UserSignIn, UserNameUpdate, UserPasswordUpdate],
 })
 export class UserModule {}

@@ -1,20 +1,19 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
-import { IUserRepository } from 'src/app/repositories/iUserRepository';
-import { ERROR_CODES, ERROR_MESSAGES } from 'src/shared/constants/errosHttp';
-import { ApiException } from 'src/shared/errors/apiExeptions';
-import { UseCase } from '..';
+import { Injectable } from '@nestjs/common';
+import { UseCase } from '../../../shared/utils/iUsecase';
+import { IUserContracts } from 'src/app/contracts/iUserContracts';
+import { UserNotFound } from 'src/shared/errors/customErross';
 
 @Injectable()
 export class UserDelete implements UseCase<string, void> {
-  constructor(private iUserRepository: IUserRepository) {}
+  constructor(private iUserContracts: IUserContracts) {}
 
   async exec(id: string): Promise<void> {
-    const user = await this.iUserRepository.findById(id);
+    const user = await this.iUserContracts.findById(id);
 
     if (!user) {
-      throw new ApiException(ERROR_MESSAGES[ERROR_CODES.USER_NOT_FOUND], HttpStatus.BAD_REQUEST, ERROR_CODES.USER_NOT_FOUND);
+      throw new UserNotFound();
     }
 
-    await this.iUserRepository.delete(user);
+    await this.iUserContracts.delete(user);
   }
 }

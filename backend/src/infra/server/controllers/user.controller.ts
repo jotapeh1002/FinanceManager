@@ -1,84 +1,191 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post } from '@nestjs/common';
-import { IdDto } from '../dto/base.dto';
+import { UserSignIn, UserDelete, UserEmailUpdate, UserList, UserSignUp, UserNameUpdate, UserPasswordUpdate, UserfindById } from 'src/app/usecase/user';
 import { UserCreateDto, UserEmailUpdateDto, UserLoginDto, UserNameUpdateDto, UserPasswordUpdateDto } from '../dto/user';
-import { ApiTags } from '@nestjs/swagger';
-import { UserCreate, UserDelete, UserEmailUpdate, UserList, UserLogin, UserNameUpdate, UserPasswordUpdate, UserfindById } from 'src/app/usecase/user';
+import { Body, Controller, Delete, Get, HttpCode, Patch, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags, ApiOperation } from '@nestjs/swagger';
+import type { Response } from 'express';
+import { JwtGuard } from '../auth/jwt.guard';
+import { PayloadInput } from 'src/app/interfaces/iTokenProviders';
 
+interface RequestWithUser extends Request {
+  user: PayloadInput;
+}
+
+@ApiTags('Usuários')
 @Controller('users')
-@ApiTags('Users')
 export class UserController {
   constructor(
-    private readonly userCreate: UserCreate,
-    private readonly userLogin: UserLogin,
-    private readonly userFindById: UserfindById,
-    private readonly userlist: UserList,
-    private readonly userNameUpdate: UserNameUpdate,
-    private readonly userEmailUpdate: UserEmailUpdate,
     private readonly userPasswordUpdate: UserPasswordUpdate,
+    private readonly userEmailUpdate: UserEmailUpdate,
+    private readonly userNameUpdate: UserNameUpdate,
+    private readonly userFindById: UserfindById,
     private readonly userDelete: UserDelete,
+    private readonly userCreate: UserSignUp,
+    private readonly userLogin: UserSignIn,
+    private readonly userlist: UserList,
   ) {}
+
+  private createCookie(@Res({ passthrough: true }) res: Response, token: string) {
+    res.cookie('refresh_token', token, {
+      httpOnly: true,
+      secure: false,
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      path: '/',
+    });
+  }
 
   @Post()
   @HttpCode(201)
-  async create(@Body() userCreateDto: UserCreateDto) {
-    await this.userCreate.exec(userCreateDto);
-    return { message: 'Usuário criado com sucesso' };
+  @ApiOperation({
+    summary: 'Criar usuário',
+    description: 'Cria um novo usuário e retorna tokens de autenticação',
+  })
+  async create(@Body() { email, name, password }: UserCreateDto, @Res({ passthrough: true }) res: Response) {
+    const result = await this.userCreate.exec({ email: email, name: name, password: password });
+
+    this.createCookie(res, result.refreshToken);
+
+    return {
+      message: 'Usuário criado com sucesso',
+      data: {
+        accessToken: result.accessToken,
+      },
+    };
   }
 
   @Post('login')
   @HttpCode(200)
-  async login(@Body() userLoginDto: UserLoginDto) {
-    await this.userLogin.exec(userLoginDto);
-    return { message: 'Login efetuado com sucesso' };
+  @ApiOperation({
+    summary: 'Login do usuário',
+    description: 'Autentica o usuário e retorna tokens de acesso',
+  })
+  async login(@Body() { email, password }: UserLoginDto, @Res({ passthrough: true }) res: Response) {
+    const result = await this.userLogin.exec({ email: email, password: password });
+
+    this.createCookie(res, result.refreshToken);
+
+    return {
+      message: 'Usuário logado com sucesso',
+      result: {
+        accessToken: result.accessToken,
+      },
+    };
   }
 
-  @Get()
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth()
   @HttpCode(200)
+  @Get()
+  @ApiOperation({
+    summary: 'Listar todos os usuários',
+    description: 'Retorna todos os usuários do sistema (requer autenticação)',
+  })
   async findAll() {
     const users = await this.userlist.exec();
-    return { message: 'Usuários retornados com sucesso', result: users.map((u) => u.toJSON()) };
+
+    return {
+      message: 'Usuários retornados com sucesso',
+      result: users.map((u) => u.toJSON()),
+    };
   }
 
-  @Get(':id')
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth()
   @HttpCode(200)
-  async findOne(@Param() idDto: IdDto) {
-    const user = await this.userFindById.exec(idDto.id);
-    return { message: 'Usuário encontrado com sucesso', result: user.toJSON() };
+  @Get('me')
+  @ApiOperation({
+    summary: 'Obter usuário atual',
+    description: 'Retorna os dados do usuário autenticado',
+  })
+  async findOne(@Req() req: RequestWithUser) {
+    const userId = req.user.userId;
+    const user = await this.userFindById.exec(userId);
+
+    return {
+      message: 'Usuário encontrado com sucesso',
+      result: user.toJSON(),
+    };
   }
 
-  @Patch(':id/name')
+  @UseGuards(JwtGuard)
+  @Patch('name')
+  @ApiBearerAuth()
   @HttpCode(200)
-  async updateName(@Param() idDto: IdDto, @Body() nameDto: UserNameUpdateDto) {
-    await this.userNameUpdate.exec({ id: idDto.id, name: nameDto.name });
-    return { message: 'Nome atualizado com sucesso' };
+  @ApiOperation({
+    summary: 'Atualizar nome',
+    description: 'Atualiza o nome do usuário autenticado',
+  })
+  async updateName(@Req() req: RequestWithUser, @Body() nameDto: UserNameUpdateDto) {
+    const userId = req.user.userId;
+
+    await this.userNameUpdate.exec({
+      id: userId,
+      name: nameDto.name,
+    });
+
+    return {
+      message: 'Nome atualizado com sucesso',
+    };
   }
 
-  @Patch(':id/password')
+  @UseGuards(JwtGuard)
+  @Patch('password')
+  @ApiBearerAuth()
   @HttpCode(200)
-  async updatePassword(@Param() idDto: IdDto, @Body() passwordDto: UserPasswordUpdateDto) {
+  @ApiOperation({
+    summary: 'Atualizar senha',
+    description: 'Atualiza a senha do usuário autenticado',
+  })
+  async updatePassword(@Req() req: RequestWithUser, @Body() passwordDto: UserPasswordUpdateDto) {
+    const userId = req.user.userId;
+
     await this.userPasswordUpdate.exec({
-      id: idDto.id,
+      id: userId,
       password: passwordDto.password,
       newPassword: passwordDto.newPassword,
     });
-    return { message: 'Senha atualizada com sucesso' };
+
+    return {
+      message: 'Senha atualizada com sucesso',
+    };
   }
 
-  @Patch(':id/email')
+  @UseGuards(JwtGuard)
+  @Patch('email')
+  @ApiBearerAuth()
   @HttpCode(200)
-  async updateEmail(@Param() idDto: IdDto, @Body() emailDto: UserEmailUpdateDto) {
+  @ApiOperation({
+    summary: 'Atualizar email',
+    description: 'Atualiza o email do usuário autenticado',
+  })
+  async updateEmail(@Req() req: RequestWithUser, @Body() emailDto: UserEmailUpdateDto) {
+    const userId = req.user.userId;
+
     await this.userEmailUpdate.exec({
-      id: idDto.id,
+      id: userId,
       email: emailDto.email,
       password: emailDto.password,
     });
-    return { message: 'Email atualizado com sucesso' };
+
+    return {
+      message: 'Email atualizado com sucesso',
+    };
   }
 
-  @Delete(':id')
+  @UseGuards(JwtGuard)
+  @ApiBearerAuth()
   @HttpCode(200)
-  async remove(@Param() idDto: IdDto) {
-    await this.userDelete.exec(idDto.id);
-    return { message: 'Usuário deletado com sucesso' };
+  @Delete()
+  @ApiOperation({
+    summary: 'Deletar conta',
+    description: 'Deleta permanentemente a conta do usuário autenticado',
+  })
+  async remove(@Req() req: RequestWithUser) {
+    const userId = req.user.userId;
+    await this.userDelete.exec(userId);
+
+    return {
+      message: 'Usuário deletado com sucesso',
+    };
   }
 }

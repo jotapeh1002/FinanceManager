@@ -1,41 +1,41 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
-import { IUserRepository } from 'src/app/repositories/iUserRepository';
-import { CriptoProvider } from 'src/app/services/hash.provider';
-import { EmailUpdateImput } from 'src/core/interfaces/user';
-import { ERROR_CODES, ERROR_MESSAGES } from 'src/shared/constants/errosHttp';
-import { ApiException } from 'src/shared/errors/apiExeptions';
-import { UseCase } from '..';
+import { Injectable } from '@nestjs/common';
+import { UseCase } from 'src/shared/utils/iUsecase';
+import { IUserContracts } from 'src/app/contracts/iUserContracts';
+import { IHashProviders } from 'src/app/interfaces/iHashProviders';
+import { EmailUpdateImput } from 'src/core/interfaces/iUser';
+import { EmailInvalid, EmailIsExists, InvalidLogin, UserNotFound } from 'src/shared/errors/customErross';
 
 @Injectable()
 export class UserEmailUpdate implements UseCase<EmailUpdateImput, void> {
   constructor(
-    private iUserRepository: IUserRepository,
-    private criptoProvider: CriptoProvider,
+    private readonly userRepo: IUserContracts,
+    private readonly hashProvider: IHashProviders,
   ) {}
 
   async exec({ email, id, password }: EmailUpdateImput): Promise<void> {
-    const user = await this.iUserRepository.findById(id);
+    const user = await this.userRepo.findById(id);
 
-    if (user?.get.email == email) {
-      throw new ApiException(ERROR_MESSAGES[ERROR_CODES.INVALID_EMAIL], HttpStatus.BAD_REQUEST, ERROR_CODES.INVALID_EMAIL);
-    }
     if (!user) {
-      throw new ApiException(ERROR_MESSAGES[ERROR_CODES.USER_NOT_FOUND], HttpStatus.BAD_REQUEST, ERROR_CODES.USER_NOT_FOUND);
+      throw new UserNotFound();
     }
 
-    const emailExists = await this.iUserRepository.findByEmail(email);
+    if (user.get.email === email) {
+      throw new EmailInvalid();
+    }
+
+    const emailExists = await this.userRepo.findByEmail(email);
 
     if (emailExists) {
-      throw new ApiException(ERROR_MESSAGES[ERROR_CODES.EMAIL_ALREADY_EXISTS], HttpStatus.BAD_REQUEST, ERROR_CODES.EMAIL_ALREADY_EXISTS);
+      throw new EmailIsExists();
     }
 
-    const isValidPassword = await this.criptoProvider.compare(password, user.get.password);
+    const isValidPassword = await this.hashProvider.compare(password, user.get.password);
 
     if (!isValidPassword) {
-      throw new ApiException(ERROR_MESSAGES[ERROR_CODES.PASSWORD_INVALID], HttpStatus.BAD_REQUEST, ERROR_CODES.PASSWORD_INVALID);
+      throw new InvalidLogin();
     }
 
-    user.update({ email: email });
-    await this.iUserRepository.update(user);
+    user.update({ email });
+    await this.userRepo.update(user);
   }
 }
